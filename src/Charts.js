@@ -4,86 +4,83 @@ import React from 'react'
 import axios from 'axios'
 import './Charts.css'
 import 'hammerjs';
+import { Link, NavLink } from 'react-router-dom';
+import Edit from './Edit';
 
-const Charts = () => {
-    const [chart, setChart] = React.useState([]);
-    const [m, setM] = React.useState([]);
-    const [series, setSeries] = React.useState([]);
-    const [lineStyle, setLineStyle] = React.useState('normal');
-    const [lineStyles] = React.useState(['normal', 'step', 'smooth']);
+const Charts = ({ loadChart }) => {
+  const [chart, setChart] = React.useState([]);
+  const [m, setM] = React.useState([]);
+  const [store, setStore] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const [series, setSeries] = React.useState([]);
+  const [lineStyle, setLineStyle] = React.useState('normal');
+  const [lineStyles] = React.useState(['normal', 'step', 'smooth']);
 
-    function loadChart() {
-        axios.get("http://localhost:3001/chart").then((res) => {
-            setChart(res.data);
-            setM(res.data)
-          })
-    }
+  function loadChart() {
+    axios.get("http://localhost:3001/charts").then((res) => {
+      const newData = res.data.map((mm) => ({
+        datas: mm.datas,
+        name: `${mm.name}`,
+        id: `${mm.id}`
+      }))
+      setLoading(true);
+      setM(newData)
+      setStore(newData)
+    })
+  }
+  React.useEffect(() => {
+    loadChart();
+  }, []);
 
-    function setChartData(value) {
-      console.log(document.getElementsByClassName('ok')[0].value)
-      setChart(value)
-    }
+  // [0,10,0,20,0,10,0,30,0]
+  return <div>
 
-    React.useEffect(() => {
-        loadChart();
-    } , []);
-
-    // React.useEffect(() => {
-    //   axios.get('http://localhost:3001/chart').then((res) => {
-    //     setM(res.data.chart)
-    //     console.log(res.data.chart)
-    // })
-    // }, [])
-
-    // React.useEffect(() => {
-    //     axios.get('http://localhost:3001/chart').then((res) => {
-    //         setSeries(res.data);
-    // } , []);
-    // })
-
-    // let data = {
-    //     "chart": {
-    //       data : [chart.data],
-    //     }
-    // }
-    
-  //   let data = {
-  //     "chart": [chart.data]
-  // }
-
-
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        axios.put('http://localhost:3001/chart', 
-        [m]
-        ).then((res) => {
-        loadChart();
-    } , []);
-    }
-
-
-    // [0,10,0,20,0,10,0,30,0]
-    console.log(chart)
-    return <div>  
-          <DropDownList data={lineStyles} value={lineStyle} onChange={event => {
+   <DropDownList data={lineStyles} value={lineStyle} onChange={event => {
         setLineStyle(event.target.value);
       }} />
-          <Chart>
+          {/*  <Chart>
             <ChartSeries>
-              <ChartSeriesItem type="area" data={m} markers={{
+              <ChartSeriesItem type="area" data={m.datas} markers={{
             visible: false
           }} line={{
             style: lineStyle
           }} />
             </ChartSeries>
-          </Chart>
-          <form onSubmit={handleSubmit}>
-          {/* <input value={series} onChange={e => setSeries(e.target.value)} /> */}
-          <input className='ok' value={m} onChange={e => setM(e.target.value)} />
-          <button>ok</button>
-          </form>
-        </div>;
+          </Chart> */}
+    {console.log(m)}
+
+    {
+      loading ? (
+        <div>
+          {
+            m.map((datas, index) => {
+              return (
+                <div key={index}>
+                      <p>{datas.name}</p>
+                      <p>{datas.id}</p>
+                      <p>{datas.datas}</p>
+                  <Chart>
+                    <ChartSeries>
+                      <ChartSeriesItem type="area" data={datas.datas} markers={{
+                        visible: false
+                      }} line={{
+                        style: lineStyle
+                      }} />
+                    </ChartSeries>
+                  </Chart>
+                  <Edit loadChart={loadChart}  />
+                </div>
+              )
+            })
+
+          }
+        </div>
+      ) : (
+        <div className="loader-container"><div className="loader"></div></div>
+      )
+    }
+
+  </div>;
 }
 
 export default Charts
